@@ -12,6 +12,7 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <link href="{{ url('style/style.css') }}" rel="stylesheet" />
+        <link rel="stylesheet" href="{{url('fontawesome-free-6.5.2-web/css/all.min.css')}}">
         <!-- <link rel="stylesheet" href="sbadmin/css/sb-admin-2.css">
         <link href="sbadmin/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
         <link href="sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"> -->
