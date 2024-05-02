@@ -31,3 +31,6 @@ td, th {
 .w-80{
   width: 80%;
 }
+.cursor-pointer{
+  cursor: pointer;
+}
