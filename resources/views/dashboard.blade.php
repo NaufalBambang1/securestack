@@ -2,9 +2,14 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Button Register new user locker -->
-            <div class="mb-6 flex justify-end">
-                <x-register-locker-button>{{ __('Register New User') }}</x-register-locker-button>
-            </div>
+            <!-- <div class="mb-6 flex justify-end">
+                <div>
+                    <x-add-locker-button>{{ __('Add New Locker') }}</x-add-locker-button>
+                </div>
+                <div class="ml-3">
+                    <x-register-locker-button>{{ __('Register New User') }}</x-register-locker-button>
+                </div>
+            </div> -->
     
             <!-- Table -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">

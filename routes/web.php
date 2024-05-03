@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RegisterlockerController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,10 +20,10 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::get('/registerlocker',function(){
-    return view('auth.register-user-locker');
+Route::get('/registernewuser',[RegisterlockerController::class,'index']);
+Route::get('/addlocker',function(){
+    return view('auth.add-locker');
 });
-
 Route::get('/userprofile',function(){
     return view('profile.edit-user-locker');
 });

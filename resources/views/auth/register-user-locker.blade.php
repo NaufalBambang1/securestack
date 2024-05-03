@@ -9,15 +9,23 @@
                 <!-- User  -->
                 <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                     <div class="max-w-xl">
-                    <header>
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                            {{ __('User Information') }}
-                        </h2>
-
-                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            {{ __("Masukkan User Informasi locker!") }}
-                        </p>
-                    </header>
+                        <header>
+                            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                {{ __('User Information') }}
+                            </h2>
+                        </header>
+                        <!-- Name -->
+                        <div>
+                            <x-input-label for="username" :value="__('Username')" />
+                            <x-text-input id="username" class="block mt-1 w-full" type="text" name="username" :value="old('username')" required autofocus autocomplete="username" />
+                            <x-input-error :messages="$errors->get('username')" class="mt-2" />
+                        </div>
+                        <!-- Role -->
+                        <div>
+                            <x-input-label for="Role" :value="__('Role')" />
+                            <x-text-input id="Role" class="block mt-1 w-full" type="text" name="Role" :value="old('Role')" required autofocus autocomplete="Role" />
+                            <x-input-error :messages="$errors->get('Role')" class="mt-2" />
+                        </div>
                     </div>
                 </div>
                 <!-- Fingerprint -->
