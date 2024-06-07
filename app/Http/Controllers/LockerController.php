@@ -4,11 +4,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Locker;
-use PhpMqtt\Client\Facades\MQTT;
-use PhpMqtt\Client\Message;
-use PhpMqtt\Client\ConnectionSettings;
+use App\Models\UserLocker;
+use App\Models\RFID;
+use App\Models\Lockers;
+use Illuminate\Support\Facades\Log;
+
 
 class LockerController extends Controller
 {
@@ -21,12 +21,10 @@ class LockerController extends Controller
     {
         $request->validate([
             'username' => 'required|string|max:255',
-            // Add other necessary validations
         ]);
 
-        User::create([
+        UserLocker::create([
             'username' => $request->username,
-            // Add other necessary fields
         ]);
 
         return redirect()->route('register.user.form')->with('success', 'User registered successfully.');
@@ -34,7 +32,7 @@ class LockerController extends Controller
 
     public function showRegisterRfidForm()
     {
-        $users = User::all();
+        $users = UserLocker::all();
         return view('register-rfid', compact('users'));
     }
 
@@ -46,18 +44,25 @@ class LockerController extends Controller
             'username' => 'required|string|max:255',
         ]);
 
-        Locker::create([
-            'rfid' => $request->rfid,
-            'lockerNumber' => $request->lockerNumber,
-            'username' => $request->username,
-        ]);
+        $user = UserLocker::where('username', $request->username)->first();
+
+        if ($user) {
+            RFID::create([
+                'UserID' => $user->UserID,
+                'RFIDTag' => $request->rfid,
+            ]);
+            echo "RFID data saved: {$request->rfid} for user: {$user->UserID}<br>";
+        } else {
+            Log::error("User not found for username: {$request->username}");
+            return redirect()->route('register.rfid.form')->with('error', 'User not found.');
+        }
 
         return redirect()->route('register.rfid.form')->with('success', 'RFID Tag registered successfully.');
     }
 
     public function showRegisterFingerprintForm()
     {
-        $users = User::all();
+        $users = UserLocker::all();
         return view('register-fingerprint', compact('users'));
     }
 
@@ -69,13 +74,20 @@ class LockerController extends Controller
             'username' => 'required|string|max:255',
         ]);
 
-        Locker::create([
-            'fingerprint' => $request->fingerprint,
-            'lockerNumber' => $request->lockerNumber,
-            'username' => $request->username,
-        ]);
+        $user = UserLocker::where('username', $request->username)->first();
+
+        if ($user) {
+            Lockers::create([
+                'fingerprint' => $request->fingerprint,
+                'lockerNumber' => $request->lockerNumber,
+                'username' => $request->username,
+            ]);
+            echo "Fingerprint data saved: {$request->fingerprint} for user: {$user->UserID}<br>";
+        } else {
+            Log::error("User not found for username: {$request->username}");
+            return redirect()->route('register.fingerprint.form')->with('error', 'User not found.');
+        }
 
         return redirect()->route('register.fingerprint.form')->with('success', 'Fingerprint Tag registered successfully.');
     }
-    
 }

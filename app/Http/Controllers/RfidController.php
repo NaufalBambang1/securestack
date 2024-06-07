@@ -2,37 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Rfid;
-use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\Rfid;
+use App\Models\UserLocker;
 
 class RfidController extends Controller
 {
-    public function index()
+    public function store(Request $request)
     {
-        $users = User::all();
-        return view('rfid.register', compact('users'));
-    }
-
-    public function register(Request $request)
-    {
-        $request->validate([
-            'rfid' => 'required|string|max:255',
-            'lockerNumber' => 'required|string|max:255',
-            'username' => 'required|string|exists:users,username'
+        $validatedData = $request->validate([
+            'rfid_tag' => 'required|string|max:255',
         ]);
 
-        $user = User::where('username', $request->username)->first();
+        // Cari RFID tag dalam database
+        $rfid = Rfid::where('rfid_tag', $validatedData['rfid_tag'])->first();
 
-        if (!$user) {
-            return back()->with('error', 'User not found');
+        if ($rfid) {
+            // Dapatkan informasi pengguna terkait jika ada
+            $user = UserLocker::find($rfid->UserID);
+
+            if ($user) {
+                return response()->json([
+                    'message' => 'RFID tag ditemukan',
+                    'user' => $user
+                ], 200);
+            } else {
+                return response()->json([
+                    'message' => 'Pengguna tidak ditemukan untuk RFID tag ini',
+                ], 404);
+            }
+        } else {
+            return response()->json([
+                'message' => 'RFID tag tidak terdaftar',
+            ], 404);
         }
-
-        $rfid = new Rfid();
-        $rfid->user_id = $user->id;
-        $rfid->rfid_tags = $request->rfid;
-        $rfid->save();
-
-        return redirect()->route('home')->with('success', 'RFID tag registered successfully');
     }
 }

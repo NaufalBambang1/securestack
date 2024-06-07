@@ -22,7 +22,7 @@ class DashboardController extends Controller
         // Join users_locker on access_logs.UserID = users_locker.UserID
         // join lockers on access_logs.LockerID = lockers.LockerID
         
-        $data = AccessLog::select('LogID','users_locker.username','lockers.lockerNumber','lockers.StatusLocker','access_logs.AccessTime','access_logs.AccessMethod','access_logs.AccessResult')
+        $data = AccessLog::select('LogID','users_locker.username','lockers.lockerNumber','lockers.StatusLocker','access_logs.AccessTime','access_logs.AccessMethodFingerprint','access_logs.AccessResultFingerprint','access_logs.AccessMethod','access_logs.AccessResult')
                         ->join('users_locker','access_logs.UserID', '=', 'users_locker.UserID')
                         ->join('lockers','access_logs.LockerID','=', 'lockers.LockerID')
                         ->get();

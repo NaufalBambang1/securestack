@@ -11,8 +11,6 @@ class Lockers extends Model
     public $table="lockers";
     protected $fillable = [
         'lockerNumber',
-        'StatusLocker',
-        'rfid',
-        'fingerprint',
-    ];
+        'StatusLocker'
+        ];
 }

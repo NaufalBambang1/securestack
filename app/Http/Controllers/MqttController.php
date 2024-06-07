@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Bluerhinos\phpMQTT;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str; // Import Str facade
-use App\Models\RFID;
-use App\Models\UserLocker; // Import User model
+use Illuminate\Support\Str;
+use App\Models\Rfid;
+use App\Models\UserLocker;
 
 class MqttController extends Controller
 {
-    protected $server = 'broker.hivemq.com'; // MQTT broker address
-    protected $port = 1883; // MQTT broker port
+    protected $server = 'broker.hivemq.com';
+    protected $port = 1883;
     protected $client_id;
 
     public function __construct()
@@ -22,7 +22,7 @@ class MqttController extends Controller
 
     public function subscribe()
     {
-        set_time_limit(300); // Set maximum execution time to 300 seconds
+        set_time_limit(300);
 
         echo "Starting MQTT connection...<br>";
 
@@ -37,26 +37,24 @@ class MqttController extends Controller
         Log::info('MQTT connected');
         echo "MQTT connected...<br>";
 
-        $topics['fingerprint'] = array('qos' => 0, 'function' => [$this, 'processMessage']); // Adjust the topic as needed
-        $topics['rfid'] = array('qos' => 0, 'function' => [$this, 'processRFID']); // Adjust the topic as needed
+        $topics['fingerprint'] = ['qos' => 0, 'function' => [$this, 'processMessage']];
+        $topics['rfid'] = ['qos' => 0, 'function' => [$this, 'processRFID']];
+        $topics['keypad'] = ['qos' => 0, 'function' => [$this, 'processKeypad']]; // Subscribe to keypad topic
         $mqtt->subscribe($topics, 0);
 
         echo "Processing MQTT messages...<br>";
         Log::info('Processing MQTT messages...');
 
         $startTime = time();
-        $timeout = 290; // Set a timeout period, e.g., 290 seconds
+        $timeout = 290;
 
         while ($mqtt->proc()) {
-            // Check if the loop has been running for too long
             if (time() - $startTime > $timeout) {
                 Log::warning('MQTT processing taking too long, breaking the loop');
                 echo "MQTT processing taking too long, breaking the loop<br>";
                 break;
             }
-
-            // Simulate some delay to avoid a tight loop, if needed
-            usleep(500000); // Sleep for 0.5 seconds
+            usleep(500000);
         }
 
         $mqtt->close();
@@ -70,11 +68,8 @@ class MqttController extends Controller
     {
         Log::info("Message received on topic $topic: $msg");
 
-        if ($topic == 'fingerprint') {
-            $fingerprintData = (int) str_replace("Fingerprint data: ", "", $msg);
-            echo "Fingerprint data saved: $fingerprintData<br>";
-            // Save fingerprint data logic goes here if needed
-        }
+        // Process the message based on the topic
+        // Example: Log the message or take some action based on the topic
 
         // Respond to the Arduino
         $response = "Received data: $msg";
@@ -82,35 +77,129 @@ class MqttController extends Controller
         $this->sendResponse($response);
     }
 
+    // public function processRFID($topic, $msg)
+    // {
+    //     Log::info("RFID Message received on topic $topic: $msg");
+
+    //     $rfidData = str_replace("RFID tag: ", "", $msg);
+        
+    //     $rfid = Rfid::where('RFIDTag', $rfidData)->first();
+
+    //     if (!$rfid) { 
+    //         $dataRfid = [
+    //             'RFIDTag' => $rfidData 
+    //         ];
+    //         Rfid::create($dataRfid);
+    //     } else {
+    //             Log::warning("RFID tag already exists for user:, RFID tag: $rfidData");
+    //             echo "RFID tag already exists for user:, RFID tag: $rfidData<br>";
+    //     }
+           
+    //     // $user = Rfid::where('RFIDTag', $rfidData)->first();
+
+    //     // if ($user) {
+    //     //     UserLocker::create([
+    //     //         'UserID' => $user->UserID,
+    //     //         'RFIDTag' => $rfidData,
+    //     //     ]);
+    //     //     echo "RFID data saved: $rfidData for user: $user->UserID<br>";
+    //     // } else {
+    //     //     Log::error("User not found for RFID tag: $rfidData");
+    //     // }
+
+    //     $response = "Received RFID data: $rfidData";
+    //     echo "Sending response back to Arduino: $response<br>";
+    //     $this->sendResponse($response);
+    // }
+
+
+
+
     public function processRFID($topic, $msg)
     {
         Log::info("RFID Message received on topic $topic: $msg");
-
+    
         $rfidData = str_replace("RFID tag: ", "", $msg);
-
-        // Find the user associated with this RFID tag
-        $user = UserLocker::where('RFIDTag', $rfidData)->first();
-
-        if ($user) {
-            RFID::create([
-                'user_id' => $user->id,
-                'RFIDTag' => $rfidData,
+    
+        // Cari RFID tag yang cocok di tabel rfids
+        $rfid = Rfid::where('RFIDTag', $rfidData)->first();
+    
+        // Jika tidak ada, buat baru
+        if (!$rfid) { 
+            $rfid = Rfid::create([
+                'RFIDTag' => $rfidData 
             ]);
-            echo "RFID data saved: $rfidData for user: $user->id<br>";
-        } else {
-            Log::error("User not found for RFID tag: $rfidData");
         }
-
-        // Respond to the Arduino
-        $response = "Received RFID data: $rfidData";
+    
+        // Cari user yang memiliki RFIDTag yang cocok
+        $user = UserLocker::where('RFIDTag', $rfidData)->first();
+    
+        if (!$user) {
+            // Cari user yang memiliki RFIDTag NULL
+            $user = UserLocker::whereNull('RFIDTag')->first();
+        }
+    
+        if (!$user) {
+            Log::warning("No user found for RFID tag: $rfidData");
+            echo "No user found for RFID tag: $rfidData<br>";
+            $response = "No user found for RFID tag: $rfidData";
+        } else {
+            // Jika ditemukan user, update RFIDTag dan rfid_id
+            $user->RFIDTag = $rfidData;
+            $user->rfid_id = $rfid->id;
+            $user->save();
+    
+            if ($user->wasRecentlyCreated) {
+                Log::info("RFID tag updated for new user: {$user->Username}, RFID tag: $rfidData");
+                echo "RFID tag updated for new user: {$user->Username}, RFID tag: $rfidData<br>";
+                $response = "RFID tag updated for new user: {$user->Username}, RFID tag: $rfidData";
+            } else {
+                Log::info("RFID tag updated for user: {$user->Username}, RFID tag: $rfidData");
+                echo "RFID tag updated for user: {$user->Username}, RFID tag: $rfidData<br>";
+                $response = "RFID tag updated for user: {$user->Username}, RFID tag: $rfidData";
+            }
+        }
+    
         echo "Sending response back to Arduino: $response<br>";
         $this->sendResponse($response);
     }
 
+    public function processKeypad($topic, $msg)
+{
+    Log::info("Keypad Message received on topic $topic: $msg");
+
+    // Process the message from keypad
+    // Example: Extract data, validate, and update database if necessary
+
+    // For example, if your message format is "Keypad code: <code>"
+    $keypadCode = str_replace("Keypad code: ", "", $msg);
+
+    // Find user based on the keypad code
+    $user = UserLocker::where('KeypadCode', $keypadCode)->first();
+
+    if (!$user) {
+        Log::warning("No user found for Keypad code: $keypadCode");
+        echo "No user found for Keypad code: $keypadCode<br>";
+        $response = "No user found for Keypad code: $keypadCode";
+    } else {
+        // Update some data based on keypad input
+        // Example: Update some flag or timestamp in the user's record
+        $user->last_keypad_used_at = now(); // Example of updating a field
+        $user->save();
+
+        Log::info("Keypad code processed for user: {$user->Username}, Keypad code: $keypadCode");
+        echo "Keypad code processed for user: {$user->Username}, Keypad code: $keypadCode<br>";
+        $response = "Keypad code processed for user: {$user->Username}, Keypad code: $keypadCode";
+    }
+
+    echo "Sending response back to Arduino: $response<br>";
+    $this->sendResponse($response);
+}
+
+    
+
     protected function sendResponse($message)
     {
-        // Here you can send a response back to the Arduino via MQTT if needed
-        // For demonstration purposes, we will just print the message
         echo "Sending response: $message<br>";
     }
 }

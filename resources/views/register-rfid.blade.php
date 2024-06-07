@@ -14,7 +14,7 @@
                             <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
                             <select name="username" id="username" class="mt-1 block w-full" required>
                                 @foreach($users as $user)
-                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                    <option value="{{ $user->UserID }}">{{ $user->Username }}</option>
                                 @endforeach
                             </select>
                         </div>

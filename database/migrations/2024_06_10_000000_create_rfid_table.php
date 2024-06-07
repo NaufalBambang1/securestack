@@ -9,8 +9,7 @@ class CreateRfidTable extends Migration
     public function up()
     {
         Schema::create('rfids', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('UserID')->constrained('users_locker', 'UserID')->onDelete('cascade');
+            $table->id(); // Gunakan 'id()' untuk primary key
             $table->string('RFIDTag', 255);
             $table->timestamps();
         });

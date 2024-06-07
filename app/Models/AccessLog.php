@@ -13,6 +13,8 @@ class AccessLog extends Model
         'UserID',
         'LockerID',
         'AccessTime',
+        'AccessMethodFingerprint',
+        'AccessResultFingeprint',
         'AccessMethod',
         'AccessResult',
     ];
