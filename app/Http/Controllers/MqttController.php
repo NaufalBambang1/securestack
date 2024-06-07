@@ -7,7 +7,7 @@ use Bluerhinos\phpMQTT;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str; // Import Str facade
 use App\Models\RFID;
-use App\Models\User; // Import User model
+use App\Models\UserLocker; // Import User model
 
 class MqttController extends Controller
 {
@@ -89,12 +89,12 @@ class MqttController extends Controller
         $rfidData = str_replace("RFID tag: ", "", $msg);
 
         // Find the user associated with this RFID tag
-        $user = User::where('rfid_tags', $rfidData)->first();
+        $user = UserLocker::where('RFIDTag', $rfidData)->first();
 
         if ($user) {
             RFID::create([
                 'user_id' => $user->id,
-                'rfid_tags' => $rfidData,
+                'RFIDTag' => $rfidData,
             ]);
             echo "RFID data saved: $rfidData for user: $user->id<br>";
         } else {

@@ -10,5 +10,5 @@ class RFID extends Model
     use HasFactory;
 
     protected $table = 'rfid'; // Specify the correct table name
-    protected $fillable = ['user_id', 'rfid_tags']; // Specify the fillable fields
+    protected $fillable = ['user_id', 'RFIDTag']; // Specify the fillable fields
 }
