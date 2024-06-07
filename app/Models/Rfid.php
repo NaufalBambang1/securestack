@@ -5,11 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Rfid extends Model
+class RFID extends Model
 {
     use HasFactory;
-    public $table="rfid_auth";
-    protected $fillable = [
-        'RFIDTags',
-    ];
+
+    protected $table = 'rfid'; // Specify the correct table name
+    protected $fillable = ['user_id', 'rfid_tags']; // Specify the fillable fields
 }

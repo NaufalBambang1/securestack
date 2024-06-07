@@ -12,5 +12,7 @@ class Lockers extends Model
     protected $fillable = [
         'lockerNumber',
         'StatusLocker',
+        'rfid',
+        'fingerprint',
     ];
 }

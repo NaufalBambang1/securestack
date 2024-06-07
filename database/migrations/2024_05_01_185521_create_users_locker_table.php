@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('Password');
             $table->string('Role');
             $table->string('RFIDTag')->nullable();
+            $table->string('FingerprintId')->nullable();
+            $table->string('KeypadCode')->nullable();
             $table->timestamps();
         });
     }

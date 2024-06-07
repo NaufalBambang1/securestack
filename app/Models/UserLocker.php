@@ -14,7 +14,9 @@ class UserLocker extends Model
         'Username',
         'Password',
         'Role',
-        'RFIDTag',
+        'RFIDTags',
+        'FingerprintData',
+        'KeyPadCode'
     ];
 
     protected $hidden = [

@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RegisterlockerController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MqttController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,5 +42,17 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+use App\Http\Controllers\LockerController;
+
+Route::get('/register-user', [LockerController::class, 'showRegisterUserForm'])->name('register.user.form');
+Route::post('/register-user', [LockerController::class, 'registerUser'])->name('register.user');
+Route::get('/register-rfid', [LockerController::class, 'showRegisterRfidForm'])->name('register.rfid.form');
+Route::post('/register-rfid', [LockerController::class, 'registerRfid'])->name('register.rfid');
+Route::get('/register-fingerprint', [LockerController::class, 'showRegisterFingerprintForm'])->name('register.fingerprint.form');
+Route::post('/register-fingerprint', [LockerController::class, 'registerFingerprint'])->name('register.fingerprint');
+
+Route::get('/subscribe', [MqttController::class, 'subscribe']);
+Route::post('/register/rfid', [MqttController::class, 'registerRfid'])->name('register.rfid');
 
 require __DIR__.'/auth.php';

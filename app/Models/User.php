@@ -10,8 +10,16 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasFactory;
+    public function rfids()
+    {
+        return $this->hasMany(Rfid::class);
+    }
 
+    public function fingerprintAuths()
+    {
+        return $this->hasMany(FingerprintAuth::class);
+    }
     /**
      * The attributes that are mass assignable.
      *

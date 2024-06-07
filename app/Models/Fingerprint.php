@@ -8,8 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Fingerprint extends Model
 {
     use HasFactory;
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     public $table="fingerprint_auth";
     protected $fillable = [
+        'user_id',
         'FingerprintData',
     ];
 }
