@@ -35,13 +35,17 @@ Route::get('/userprofile',function(){
 
 Route::middleware(['auth', 'verified'])
     ->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
+    
+Route::post('/access/fingerprint', [DashboardController::class, 'accessWithFingerprint']);
+Route::post('/access/rfid', [DashboardController::class, 'accessWithRfid']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+
 
 use App\Http\Controllers\LockerController;
 

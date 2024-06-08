@@ -17,7 +17,9 @@ class UserLocker extends Model
         'Username',
         'Password',
         'Role',
+        'rfid_id',
         'RFIDTags',
+        'fingerprint_id',
         'FingerprintData',
         'KeyPadCode'
     ];
@@ -29,6 +31,10 @@ class UserLocker extends Model
     public function rfid()
     {
         return $this->belongsTo(Rfid::class, 'rfid_id');
+    } 
+    public function fingerprint()
+    {
+        return $this->belongsTo(Fingerprint::class, 'fingerprint_id');
     } 
 
 

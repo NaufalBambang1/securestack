@@ -9,14 +9,15 @@
                     <table> 
                         <tr class="p-6 bg-gray-500">
                             <th class="w-20">Log ID</th>
-                            <th class="w-30">Username </th>
+                            <th class="w-10">Username </th>
                             <th>Locker Number </th>
                             <th>Status</th>
+                            <th>Access Method</th>
+                            <th>Result Method</th>
                             <th class="w-10">Access Time</th>
-                            <th>Access Method 1</th>
-                            <th>Result Method 1</th>
-                            <th>Access Method 2</th>
-                            <th>Access Result 2</th>
+                            <th>Access Method</th>
+                            <th>Access Result</th>
+                            <th class="w-10">Access Time</th>
                             <th>Option</th>
                         </tr>
                         @foreach($data as $dataX)
@@ -25,11 +26,12 @@
                             <td>{{$dataX->username}}</td>
                             <td>{{$dataX->lockerNumber}}</td>
                             <td>{{$dataX->StatusLocker}}</td>
-                            <td>{{$dataX->AccessTime}}</td>
                             <td>{{$dataX->AccessMethodFingerprint}}</td>
                             <td>{{$dataX->AccessResultFingerprint}}</td>
+                            <td>{{$dataX->AccessTime}}</td>
                             <td>{{$dataX->AccessMethod}}</td>
                             <td>{{$dataX->AccessResult}}</td>
+                            <td>{{$dataX->AccessTime}}</td>
                             <td class="text-center">
                                 <a href="/userprofile" class="p-3">       
                                     <i class="fa-solid fa-ellipsis-vertical cursor-pointer"></i>

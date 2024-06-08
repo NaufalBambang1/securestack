@@ -17,7 +17,9 @@ return new class extends Migration
             $table->unsignedBigInteger('rfid_id')->nullable();
             $table->foreign('rfid_id')->references('id')->on('rfids');
             $table->string('RFIDTag')->nullable();
-            $table->string('FingerprintId')->nullable();
+            $table->unsignedBigInteger('fingerprint_id')->nullable();
+            $table->foreign('fingerprint_id')->references('id')->on('fingerprint_auth');
+            $table->string('FingerprintData')->nullable();
             $table->string('KeypadCode')->nullable();
             $table->timestamps();
         });

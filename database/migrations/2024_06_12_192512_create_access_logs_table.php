@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id('LogID');
             $table->foreignId('UserID')->constrained('users_locker', 'UserID')->onDelete('cascade');
             $table->foreignId('LockerID')->constrained('lockers', 'LockerID')->onDelete('cascade');
-            $table->dateTime('AccessTime');
-            $table->enum('AccessMethodFingerprint', ['fingerprint']);
-            $table->enum('AccessResultFingerprint', ['granted', 'denied']);
-            $table->enum('AccessMethod', ['keypad', 'RFID']);
-            $table->enum('AccessResult', ['granted', 'denied']);
+            $table->string('AccessMethodFingerprint');
+            $table->string('AccessResultFingerprint');
+            $table->dateTime('AccessTimeFingerprint')->nullable();
+            $table->string('AccessMethod');
+            $table->string('AccessResult');
+            $table->dateTime('AccessTime')->nullable();
             $table->timestamps();
         });
     }

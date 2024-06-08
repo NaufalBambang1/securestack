@@ -12,10 +12,11 @@ class AccessLog extends Model
     protected $fillable = [
         'UserID',
         'LockerID',
-        'AccessTime',
         'AccessMethodFingerprint',
         'AccessResultFingeprint',
+        'AccessTimeFingerprint',
         'AccessMethod',
         'AccessResult',
+        'AccessTime',
     ];
 }
