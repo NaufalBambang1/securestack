@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\Rfid;
 use App\Models\UserLocker;
+use App\Models\Fingerprint;
 
 class MqttController extends Controller
 {
@@ -37,9 +38,8 @@ class MqttController extends Controller
         Log::info('MQTT connected');
         echo "MQTT connected...<br>";
 
-        $topics['fingerprint'] = ['qos' => 0, 'function' => [$this, 'processMessage']];
         $topics['rfid'] = ['qos' => 0, 'function' => [$this, 'processRFID']];
-        $topics['keypad'] = ['qos' => 0, 'function' => [$this, 'processKeypad']]; // Subscribe to keypad topic
+        $topics['fingerprint/enroll'] = ['qos' => 0, 'function' => [$this, 'processFingerprint']]; // New function
         $mqtt->subscribe($topics, 0);
 
         echo "Processing MQTT messages...<br>";
@@ -76,41 +76,6 @@ class MqttController extends Controller
         echo "Sending response back to Arduino: $response<br>";
         $this->sendResponse($response);
     }
-
-    // public function processRFID($topic, $msg)
-    // {
-    //     Log::info("RFID Message received on topic $topic: $msg");
-
-    //     $rfidData = str_replace("RFID tag: ", "", $msg);
-        
-    //     $rfid = Rfid::where('RFIDTag', $rfidData)->first();
-
-    //     if (!$rfid) { 
-    //         $dataRfid = [
-    //             'RFIDTag' => $rfidData 
-    //         ];
-    //         Rfid::create($dataRfid);
-    //     } else {
-    //             Log::warning("RFID tag already exists for user:, RFID tag: $rfidData");
-    //             echo "RFID tag already exists for user:, RFID tag: $rfidData<br>";
-    //     }
-           
-    //     // $user = Rfid::where('RFIDTag', $rfidData)->first();
-
-    //     // if ($user) {
-    //     //     UserLocker::create([
-    //     //         'UserID' => $user->UserID,
-    //     //         'RFIDTag' => $rfidData,
-    //     //     ]);
-    //     //     echo "RFID data saved: $rfidData for user: $user->UserID<br>";
-    //     // } else {
-    //     //     Log::error("User not found for RFID tag: $rfidData");
-    //     // }
-
-    //     $response = "Received RFID data: $rfidData";
-    //     echo "Sending response back to Arduino: $response<br>";
-    //     $this->sendResponse($response);
-    // }
 
 
 
@@ -164,37 +129,54 @@ class MqttController extends Controller
         $this->sendResponse($response);
     }
 
-    public function processKeypad($topic, $msg)
-{
-    Log::info("Keypad Message received on topic $topic: $msg");
+    public function processFingerprint($topic, $msg)
+    {
+        Log::info("Fingerprint Message received on topic $topic: $msg");
+    
+        // Assuming Arduino sends the fingerprint ID as a number
+        $fingerprintId = $msg;
 
-    // Process the message from keypad
-    // Example: Extract data, validate, and update database if necessary
+        $fingerprint = Fingerprint::where('FingerprintData',$fingerprintId)->first();
 
-    // For example, if your message format is "Keypad code: <code>"
-    $keypadCode = str_replace("Keypad code: ", "", $msg);
+        if(!$fingerprint){
+            $fingerprint = Fingerprint::create([
+                'FingerprintData' => $fingerprintId
+            ]);
+        }
+        
+        // Find the user based on the fingerprint ID
+        $user = UserLocker::where('FingerprintData', $fingerprintId)->first();
 
-    // Find user based on the keypad code
-    $user = UserLocker::where('KeypadCode', $keypadCode)->first();
+        if (!$user) {
+            // Cari user yang memiliki RFIDTag NULL
+            $user = UserLocker::whereNull('FingerprintData')->first();
+        }
 
-    if (!$user) {
-        Log::warning("No user found for Keypad code: $keypadCode");
-        echo "No user found for Keypad code: $keypadCode<br>";
-        $response = "No user found for Keypad code: $keypadCode";
-    } else {
-        // Update some data based on keypad input
-        // Example: Update some flag or timestamp in the user's record
-        $user->last_keypad_used_at = now(); // Example of updating a field
-        $user->save();
-
-        Log::info("Keypad code processed for user: {$user->Username}, Keypad code: $keypadCode");
-        echo "Keypad code processed for user: {$user->Username}, Keypad code: $keypadCode<br>";
-        $response = "Keypad code processed for user: {$user->Username}, Keypad code: $keypadCode";
+        if (!$user) {
+            // If user not found, log a warning
+            Log::warning("No user found for Fingerprint ID: $fingerprintId");
+            echo "No user found for Fingerprint ID: $fingerprintId<br>";
+            $response = "No user found for Fingerprint ID: $fingerprintId";
+        } else {
+            // Update user data with the fingerprint ID and save
+            $user->FingerprintData = $fingerprintId;
+            $user->fingerprint_id = $fingerprint->id;
+            $user->save();
+    
+            // Log the successful update
+            Log::info("Fingerprint ID updated for user: {$user->Username}, Fingerprint ID: $fingerprintId");
+            echo "Fingerprint ID updated for user: {$user->Username}, Fingerprint ID: $fingerprintId<br>";
+            $response = "Fingerprint ID updated for user: {$user->Username}, Fingerprint ID: $fingerprintId";
+        }
+    
+        // Send response back to Arduino
+        echo "Sending response back to Arduino: $response<br>";
+        $this->sendResponse($response);
     }
+    
+    
 
-    echo "Sending response back to Arduino: $response<br>";
-    $this->sendResponse($response);
-}
+    
 
     
 
@@ -203,3 +185,39 @@ class MqttController extends Controller
         echo "Sending response: $message<br>";
     }
 }
+
+
+    // public function processRFID($topic, $msg)
+    // {
+    //     Log::info("RFID Message received on topic $topic: $msg");
+
+    //     $rfidData = str_replace("RFID tag: ", "", $msg);
+        
+    //     $rfid = Rfid::where('RFIDTag', $rfidData)->first();
+
+    //     if (!$rfid) { 
+    //         $dataRfid = [
+    //             'RFIDTag' => $rfidData 
+    //         ];
+    //         Rfid::create($dataRfid);
+    //     } else {
+    //             Log::warning("RFID tag already exists for user:, RFID tag: $rfidData");
+    //             echo "RFID tag already exists for user:, RFID tag: $rfidData<br>";
+    //     }
+           
+    //     // $user = Rfid::where('RFIDTag', $rfidData)->first();
+
+    //     // if ($user) {
+    //     //     UserLocker::create([
+    //     //         'UserID' => $user->UserID,
+    //     //         'RFIDTag' => $rfidData,
+    //     //     ]);
+    //     //     echo "RFID data saved: $rfidData for user: $user->UserID<br>";
+    //     // } else {
+    //     //     Log::error("User not found for RFID tag: $rfidData");
+    //     // }
+
+    //     $response = "Received RFID data: $rfidData";
+    //     echo "Sending response back to Arduino: $response<br>";
+    //     $this->sendResponse($response);
+    // }
