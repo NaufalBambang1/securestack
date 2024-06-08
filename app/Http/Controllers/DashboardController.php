@@ -16,7 +16,7 @@ class DashboardController extends Controller
     {
         $data = AccessLog::select(
                             'access_logs.LogID',
-                            'users_locker.Username',
+                            'users_locker.username',
                             'lockers.lockerNumber',
                             'lockers.StatusLocker',
                             'access_logs.AccessMethodFingerprint',
