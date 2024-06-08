@@ -19,4 +19,5 @@ class AccessLog extends Model
         'AccessResult',
         'AccessTime',
     ];
+    protected $primaryKey = 'LogID';
 }

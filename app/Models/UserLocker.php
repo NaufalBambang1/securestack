@@ -15,13 +15,12 @@ class UserLocker extends Model
     protected $fillable = [
         'UserID',
         'Username',
-        'Password',
+        'locker_id',
         'Role',
         'rfid_id',
         'RFIDTags',
         'fingerprint_id',
         'FingerprintData',
-        'KeyPadCode'
     ];
 
     protected $hidden = [
@@ -37,5 +36,9 @@ class UserLocker extends Model
         return $this->belongsTo(Fingerprint::class, 'fingerprint_id');
     } 
 
+    public function lockers()
+    {
+        return $this->belongsTo(Lockers::class, 'locker_id');
+    } 
 
 }

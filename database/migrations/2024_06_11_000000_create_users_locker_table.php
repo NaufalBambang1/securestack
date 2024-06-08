@@ -12,7 +12,8 @@ return new class extends Migration
         Schema::create('users_locker', function (Blueprint $table) {
             $table->id('UserID');
             $table->string('Username');
-            $table->string('Password');
+            $table->unsignedBigInteger('locker_id')->nullable();
+            $table->foreign('locker_id')->references('LockerID')->on('lockers');
             $table->string('Role');
             $table->unsignedBigInteger('rfid_id')->nullable();
             $table->foreign('rfid_id')->references('id')->on('rfids');
@@ -20,7 +21,6 @@ return new class extends Migration
             $table->unsignedBigInteger('fingerprint_id')->nullable();
             $table->foreign('fingerprint_id')->references('id')->on('fingerprint_auth');
             $table->string('FingerprintData')->nullable();
-            $table->string('KeypadCode')->nullable();
             $table->timestamps();
         });
     }
