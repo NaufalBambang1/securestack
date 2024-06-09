@@ -38,6 +38,10 @@ Route::middleware(['auth', 'verified'])
     
 Route::get('/access/fingerprint', [DashboardController::class, 'accessWithFingerprint']);
 Route::get('/access/rfid', [DashboardController::class, 'accessWithRfid']);
+Route::post('/access/fingerprint', [DashboardController::class, 'accessWithFingerprint']);
+Route::post('/access/rfid', [DashboardController::class, 'accessWithRfid']);
+Route::get('/resetButton',[DashboardController::class, 'resetButton'])->name('resetButton');
+Route::get('/locker/updateStatus', [DashboardController::class, 'updateStatus']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

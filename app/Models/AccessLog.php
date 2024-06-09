@@ -18,6 +18,7 @@ class AccessLog extends Model
         'AccessMethod',
         'AccessResult',
         'AccessTime',
+        'RejectCount'
     ];
     protected $primaryKey = 'LogID';
 }

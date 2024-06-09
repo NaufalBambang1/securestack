@@ -21,7 +21,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/rfid', 'RfidController@store');
 // routes/api.php
 Route::get('/fingerprints', 'FingerprintController@getFingerprints');
-
 // Route::get('/access/fingerprint', [DashboardController::class, 'accessWithFingerprint']);
 // Route::post('/access/rfid', [DashboardController::class, 'accessWithRfid']);
 

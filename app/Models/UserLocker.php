@@ -21,10 +21,8 @@ class UserLocker extends Model
         'RFIDTag',
         'fingerprint_id',
         'FingerprintData',
-    ];
-
-    protected $hidden = [
-        'password',
+        'failed_attempts_fingerprint',
+        'failed_attempts_rfid',
     ];
 
     public function rfid()

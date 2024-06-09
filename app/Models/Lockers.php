@@ -13,4 +13,5 @@ class Lockers extends Model
         'lockerNumber',
         'StatusLocker'
         ];
+    protected $primaryKey = 'LockerID';
 }

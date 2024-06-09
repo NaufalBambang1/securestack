@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('AccessMethod')->nullable();
             $table->string('AccessResult')->nullable();
             $table->dateTime('AccessTime')->nullable();
+            $table->integer('RejectCount')->default(0);
             $table->timestamps();
         });
     }

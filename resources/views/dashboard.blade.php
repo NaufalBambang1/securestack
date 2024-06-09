@@ -33,9 +33,20 @@
                             <td>{{$dataX->AccessResult}}</td>
                             <td>{{$dataX->AccessTime}}</td>
                             <td class="text-center">
-                                <a href="/userprofile" class="p-3">       
+                                <div class="btn-group">
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary dropdown-toggle mr-1 mb-1" type="button" data-toggle="dropdown">
+                                            <i class="fa-solid fa-ellipsis-vertical cursor-pointer"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" >Lihat Detail</a>  
+                                            <a class="dropdown-item text--red" href="#" onclick="resetLocker({{ $dataX->LogID }}, {{ $dataX->LockerID }})">Reset</a>                                    
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- <a href="/userprofile" class="p-3">       
                                     <i class="fa-solid fa-ellipsis-vertical cursor-pointer"></i>
-                                </a>
+                                </a> -->
                             </td>
                         </tr>
                         @endforeach
@@ -44,4 +55,34 @@
             </div>
         </div>
     </div>
+    <script>
+       function resetLocker(logID, lockerID) {
+            if (!confirm("Apakah Anda yakin ingin mereset locker ini?")) {
+                return;
+            }
+
+            var xhr = new XMLHttpRequest();
+            var url = '/resetButton?LogID=' + logID + '&LockerID=' + lockerID;
+
+            xhr.open('GET', url, true);
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    alert('Locker berhasil direset.');
+                    location.reload(); // Refresh halaman setelah reset berhasil
+                } else {
+                    console.error(xhr.responseText);
+                    alert('Gagal mereset locker.');
+                }
+            };
+
+            xhr.onerror = function() {
+                console.error(xhr.responseText);
+                alert('Gagal mereset locker.');
+            };
+
+            xhr.send();
+        }
+    </script>
+    </script>
 </x-app-layout>

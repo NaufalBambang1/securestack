@@ -21,6 +21,8 @@ return new class extends Migration
             $table->unsignedBigInteger('fingerprint_id')->nullable();
             $table->foreign('fingerprint_id')->references('id')->on('fingerprint_auth');
             $table->string('FingerprintData')->nullable();
+            $table->unsignedInteger('failed_attempts_fingerprint')->default(0); // Kolom percobaan gagal fingerprint
+            $table->unsignedInteger('failed_attempts_rfid')->default(0); // Kolom percobaan gagal RFID
             $table->timestamps();
         });
     }
