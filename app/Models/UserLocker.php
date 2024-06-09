@@ -18,7 +18,7 @@ class UserLocker extends Model
         'locker_id',
         'Role',
         'rfid_id',
-        'RFIDTags',
+        'RFIDTag',
         'fingerprint_id',
         'FingerprintData',
     ];

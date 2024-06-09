@@ -28,7 +28,7 @@
                             <td>{{$dataX->StatusLocker}}</td>
                             <td>{{$dataX->AccessMethodFingerprint}}</td>
                             <td>{{$dataX->AccessResultFingerprint}}</td>
-                            <td>{{$dataX->AccessTime}}</td>
+                            <td>{{$dataX->AccessTimeFingerprint}}</td>
                             <td>{{$dataX->AccessMethod}}</td>
                             <td>{{$dataX->AccessResult}}</td>
                             <td>{{$dataX->AccessTime}}</td>
