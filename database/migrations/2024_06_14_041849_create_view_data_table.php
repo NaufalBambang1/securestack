@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('access_logs', function (Blueprint $table) {
+        Schema::create('view_data', function (Blueprint $table) {
             $table->id('LogID');
             $table->foreignId('UserID')->constrained('users_locker', 'UserID')->onDelete('cascade');
             $table->foreignId('LockerID')->constrained('lockers', 'LockerID')->onDelete('cascade');
             $table->string('AccessMethodFingerprint')->nullable();
-            $table->string('AccessResultFingerprint')->nullable();
             $table->dateTime('AccessTimeFingerprint')->nullable();
+            $table->string('AccessResultFingerprint')->nullable();
+            $table->unsignedInteger('failed_attempts_fingerprint')->default(0); // Kolom percobaan gagal fingerprint
             $table->string('AccessMethod')->nullable();
-            $table->string('AccessResult')->nullable();
             $table->dateTime('AccessTime')->nullable();
+            $table->string('AccessResult')->nullable();
+            $table->unsignedInteger('failed_attempts_rfid')->default(0); // Kolom percobaan gagal RFID
             $table->timestamps();
         });
     }
@@ -30,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('access_logs');
+        Schema::dropIfExists('view_data');
     }
 };

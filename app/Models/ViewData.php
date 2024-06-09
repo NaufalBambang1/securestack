@@ -5,19 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AccessLog extends Model
+class ViewData extends Model
 {
     use HasFactory;
-    public $table ="access_logs";
+    public $table ="view_data";
     protected $fillable = [
         'UserID',
         'LockerID',
         'AccessMethodFingerprint',
-        'AccessResultFingeprint',
         'AccessTimeFingerprint',
+        'AccessResultFingeprint',
+        'failed_attempts_fingerprint',
         'AccessMethod',
-        'AccessResult',
         'AccessTime',
+        'AccessResult',
+        'failed_attempts_rfid',
     ];
     protected $primaryKey = 'LogID';
 }
+
