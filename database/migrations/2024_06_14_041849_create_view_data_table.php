@@ -12,9 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('view_data', function (Blueprint $table) {
-            $table->id('LogID');
+            $table->id('ViewLogID');
+            $table->foreignId('LogID')->constrained('access_logs', 'LogID')->onDelete('cascade');
             $table->foreignId('UserID')->constrained('users_locker', 'UserID')->onDelete('cascade');
             $table->foreignId('LockerID')->constrained('lockers', 'LockerID')->onDelete('cascade');
+            $table->string('StatusLocker')->nullable();
             $table->string('AccessMethodFingerprint')->nullable();
             $table->dateTime('AccessTimeFingerprint')->nullable();
             $table->string('AccessResultFingerprint')->nullable();

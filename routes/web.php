@@ -36,6 +36,7 @@ Route::get('/userprofile',function(){
 Route::middleware(['auth', 'verified'])
     ->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
+Route::get('/viewdetail/{logID}', [DashboardController::class, 'indexViewData'])->name('viewdata');
 Route::get('/access/fingerprint', [DashboardController::class, 'accessWithFingerprint']);
 Route::get('/access/rfid', [DashboardController::class, 'accessWithRfid']);
 Route::post('/access/fingerprint', [DashboardController::class, 'accessWithFingerprint']);

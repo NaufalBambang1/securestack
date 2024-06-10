@@ -39,7 +39,7 @@
                                             <i class="fa-solid fa-ellipsis-vertical cursor-pointer"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" >Lihat Detail</a>  
+                                            <a class="dropdown-item" href="/viewdetail/{{ $dataX->LogID }}">Lihat Detail</a>  
                                             <a class="dropdown-item text--red" href="#" onclick="resetLocker({{ $dataX->LogID }}, {{ $dataX->LockerID }})">Reset</a>                                    
                                         </div>
                                     </div>

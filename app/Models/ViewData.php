@@ -12,6 +12,7 @@ class ViewData extends Model
     protected $fillable = [
         'UserID',
         'LockerID',
+        'StatusLocker',
         'AccessMethodFingerprint',
         'AccessTimeFingerprint',
         'AccessResultFingeprint',
@@ -21,6 +22,10 @@ class ViewData extends Model
         'AccessResult',
         'failed_attempts_rfid',
     ];
-    protected $primaryKey = 'LogID';
+    protected $primaryKey = 'ViewLogID';
+    public function accessLog()
+    {
+        return $this->belongsTo(AccessLog::class, 'LogID', 'LogID');
+    }
 }
 
