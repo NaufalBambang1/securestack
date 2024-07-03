@@ -40,8 +40,7 @@
                                         </button>
                                         <div class="dropdown-menu">
                                             <a class="dropdown-item" href="/viewdetail/{{ $dataX->LogID }}">Lihat Detail</a>  
-                                            <a class="dropdown-item text--red" href="#" onclick="resetLocker({{ $dataX->LogID }}, {{ $dataX->LockerID }})">Reset</a>                                    
-                                        </div>
+                                            <a class="dropdown-item text--red" href="#" onclick="resetLocker({{ $dataX->LockerID}})">Reset</a>                                        </div>
                                     </div>
                                 </div>
                                 <!-- <a href="/userprofile" class="p-3">       
@@ -55,34 +54,37 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-       function resetLocker(logID, lockerID) {
-            if (!confirm("Apakah Anda yakin ingin mereset locker ini?")) {
-                return;
-            }
+function resetLocker(lockerID) {
 
-            var xhr = new XMLHttpRequest();
-            var url = '/resetButton?LogID=' + logID + '&LockerID=' + lockerID;
+    if (!confirm("Apakah Anda yakin ingin mereset locker ini?")) {
+        return;
+    }
 
-            xhr.open('GET', url, true);
+    var url = '/resetButton?LockerID=' + lockerID;
 
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    alert('Locker berhasil direset.');
-                    location.reload(); // Refresh halaman setelah reset berhasil
-                } else {
-                    console.error(xhr.responseText);
-                    alert('Gagal mereset locker.');
-                }
-            };
-
-            xhr.onerror = function() {
-                console.error(xhr.responseText);
+    axios.get(url)
+        .then(function(response) {
+            if (response.status === 200) {
+                alert('Locker berhasil direset.');
+                location.reload(); // Refresh halaman setelah reset berhasil
+            } else {
+                console.error(response.data);
                 alert('Gagal mereset locker.');
-            };
+            }
+        })
+        .catch(function(error) {
+            if (error.response) {
+                console.error(error.response.data);
+                alert('Gagal mereset locker: ' + error.response.data.error);
+            } else {
+                console.error(error.message);
+                alert('Gagal mereset locker.');
+            }
+        });
+}
+</script>
 
-            xhr.send();
-        }
-    </script>
     </script>
 </x-app-layout>

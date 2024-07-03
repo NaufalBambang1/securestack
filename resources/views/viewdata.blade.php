@@ -9,7 +9,6 @@
                 <span class="fs-20px">View Detail Akses Log</span>  
                     <table> 
                         <tr class="p-6 bg-gray-500">
-                            <th>viewLogID</th>
                             <th>LogID</th>
                             <th class="w-10">Username </th>
                             <th>Locker Number </th>
@@ -25,7 +24,6 @@
                         </tr>
                         @foreach($dataView as $dataX)
                         <tr>
-                            <td>{{$dataX->ViewLogID}}</td>
                             <td>{{$dataX->LogID}}</td>
                             <td>{{$dataX->username}}</td>
                             <td>{{$dataX->lockerNumber}}</td>

@@ -76,20 +76,16 @@ class DashboardController extends Controller
             return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
         }
         
-        // Mendapatkan ID sidik jari dari request
+// Mendapatkan ID sidik jari dari request
         $fingerprint_id = $request->FingerprintData;
-        $fingerprint = Fingerprint::where('FingerprintData', $fingerprint_id)->first();
-        if (!$fingerprint) {
-            return response()->json(['error' => 'Data sidik jari tidak ditemukan.'], 404);
-        }
-        
-        // Membandingkan data sidik jari
-        if ($fingerprint->FingerprintData != $userLocker->FingerprintData) {
-            $accessResult = 'Ditolak';
-            $accessMethod = 'Fingerprint';
+
+// Membandingkan data sidik jari langsung dengan data di $userLocker
+        if ($fingerprint_id != $userLocker->FingerprintData) {
+         $accessResult = 'Ditolak';
+         $accessMethod = 'Fingerprint';
         } else {
-            $accessResult = 'Diterima';
-            $accessMethod = 'Fingerprint';
+        $accessResult = 'Diterima';
+        $accessMethod = 'Fingerprint';
         }
 
         // Memeriksa apakah log akses dengan kombinasi UserID dan LockerID sudah ada
@@ -164,12 +160,8 @@ class DashboardController extends Controller
         }
 
         $rfid_id = $request->RFIDTag;
-        $rfidTag = Rfid::where('RFIDTag',$rfid_id)->first();
-        if (!$rfidTag) {
-            return response()->json(['error' => 'RFID tag not found.'], 404);
-        }
 
-        if ($rfidTag->RFIDTag != $userLocker->RFIDTag) {
+        if ($rfid_id != $userLocker->RFIDTag) {
             $accessResult = 'Ditolak';
             $accessMethod = 'RFID';
         } else {
@@ -250,38 +242,31 @@ class DashboardController extends Controller
 
     public function resetButton(Request $request)
     {
-        $logID = $request->input('LogID');
         $LockerID = $request->input('LockerID');
-   
-        // Cari data user locker berdasarkan UserID
+        
+        // Cari data user locker berdasarkan LockerID
         $userLocker = UserLocker::where('locker_id', $LockerID)->first();
         if (!$userLocker) {
             return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
         }
-
+    
         // Reset failed attempts
         $userLocker->failed_attempts_fingerprint = 0;
         $userLocker->failed_attempts_rfid = 0;
         $userLocker->save();
-
-
-        // Cari log akses berdasarkan LogID
-        $accessLog = AccessLog::where('LogID',$logID)->first();
-        if (!$accessLog) {
-            return response()->json(['error' => 'Log akses tidak ditemukan.'], 404);
-        }
-
+    
         // Update status locker menjadi 'Closed'
         $locker = Lockers::where('LockerID', $userLocker->locker_id)->first();
         if ($locker) {
             $locker->StatusLocker = 'Closed';
             $locker->save();
         }
-
+    
         return response()->json([
             'message' => 'Locker berhasil direset.',
         ], 200);
     }
+    
 
 
     public function updateStatus(Request $request)
