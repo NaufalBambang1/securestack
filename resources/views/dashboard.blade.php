@@ -12,17 +12,16 @@
                                 <th class="w-10">Username</th>
                                 <th>Locker Number</th>
                                 <th>Status</th>
-                                <th>Access Method (Fingerprint)</th>
-                                <th>Result Method (Fingerprint)</th>
-                                <th class="w-10">Access Time (Fingerprint)</th>
-                                <th>Access Method (RFID)</th>
-                                <th>Access Result (RFID)</th>
-                                <th class="w-10">Access Time (RFID)</th>
+                                <th>Access Method </th>
+                                <th>Result Method </th>
+                                <th class="w-10">Access Time</th>
+                                <th>Access Method</th>
+                                <th>Access Result</th>
+                                <th class="w-10">Access Time</th>
                                 <th>Option</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Data akan dimuat oleh JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -47,7 +46,7 @@
             .then(function(response) {
                 if (response.status === 200) {
                     alert('Locker berhasil direset.');
-                    fetchData(); // Panggil kembali fetchData untuk memuat ulang data setelah reset berhasil
+                    fetchData();
                 } else {
                     console.error(response.data);
                     alert('Gagal mereset locker.');
