@@ -43,6 +43,7 @@ Route::post('/access/fingerprint', [DashboardController::class, 'accessWithFinge
 Route::post('/access/rfid', [DashboardController::class, 'accessWithRfid']);
 Route::get('/resetButton',[DashboardController::class, 'resetButton'])->name('resetButton');
 Route::get('/locker/updateStatus', [DashboardController::class, 'updateStatus']);
+Route::get('/dashboard/data', [DashboardController::class, 'getData'])->name('dashboard.data');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

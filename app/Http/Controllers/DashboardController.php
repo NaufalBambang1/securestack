@@ -267,8 +267,6 @@ class DashboardController extends Controller
         ], 200);
     }
     
-
-
     public function updateStatus(Request $request)
     {
         // Validasi input
@@ -295,6 +293,32 @@ class DashboardController extends Controller
             ], 404);
         }
     }
+
+    public function getData()
+    {
+        $data = AccessLog::select(
+            'access_logs.LogID',
+            'users_locker.username',
+            'lockers.lockerNumber',
+            'lockers.StatusLocker',
+            'access_logs.AccessMethodFingerprint',
+            'access_logs.AccessResultFingerprint',
+            'access_logs.AccessTimeFingerprint',
+            'access_logs.AccessMethod',
+            'access_logs.AccessResult',
+            'access_logs.AccessTime',
+            'access_logs.LockerID'
+        )
+        ->join('users_locker', 'access_logs.UserID', '=', 'users_locker.UserID')
+        ->join('lockers', 'access_logs.LockerID', '=', 'lockers.LockerID')  
+        ->get();
+    
+        return response()->json($data);
+    }
+    
+    
+
+
     // public function accessWithRfid(Request $request)
     // {
     //     $userLocker = UserLocker::find($request->UserID);
