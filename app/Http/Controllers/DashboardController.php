@@ -36,7 +36,7 @@ class DashboardController extends Controller
         )
             ->join('users_locker', 'access_logs.UserLockerID', '=', 'users_locker.UserLockerID')
             ->join('lockers', 'users_locker.UserLockerID', '=', 'lockers.UserLockerID')
-            ->where('users_locker.UserLockerID', $logID)
+            ->where('access_logs.LogID', $logID)
             ->get();
 
         return view('viewdata', compact('dataView'));
@@ -61,43 +61,46 @@ class DashboardController extends Controller
                     $accessResult = 'Diterima';
                     $accessMethod = 'Fingerprint';
                 }
-            }else{
-                return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
-            }
 
-            // Check if access is denied and increment failed attempts
-            if ($accessResult == 'Ditolak') {
-                $userLocker->failed_attempts_fingerprint = $userLocker->failed_attempts_fingerprint + 1;
-                $userLocker->save();
+                // Check if access is denied and increment failed attempts
+                if ($accessResult == 'Ditolak') {
+                    $userLocker->failed_attempts_fingerprint += 1;
+                    $userLocker->save();
 
-                // Check if failed attempts reach 5 and block locker
-                if ($userLocker->failed_attempts_fingerprint >= 5) {
-                    $this->blockLocker($lockerid->LockerID);
+                    // Check if failed attempts reach 5 and block locker
+                    if ($userLocker->failed_attempts_fingerprint >= 5) {
+                        $this->blockLocker($lockerid->LockerID);
+                    }
+
+                } else {
+                    // Reset failed attempts if access is granted
+                    $userLocker->failed_attempts_fingerprint = 0;
+                    $userLocker->save();
                 }
 
-            } else {
-                // Reset failed attempts if access is granted
-                $userLocker->failed_attempts_fingerprint = 0;
-                $userLocker->save();
+                $accessLog = new AccessLog();
+                $accessLog->UserLockerID = $userLocker->UserLockerID;
+                $accessLog->AccessMethodFingerprint = $accessMethod;
+                $accessLog->AccessResultFingerprint = $accessResult;
+                $accessLog->AccessTimeFingerprint = now();
+
+                $accessLog->save();
+        
+                return response()->json([
+                    'message' => 'Log akses berhasil dibuat atau diperbarui.',
+                    'accessResultFingerprint' => $accessResult,
+                    'failedAttemptsFingerprint' => $userLocker->failed_attempts_fingerprint,
+                    'lockerStatus' => $locker->StatusLocker
+                ], 200);
+                
+            }else{
+                return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
             }
         }else{
             return response()->json(['error' => 'locker tidak ditemukan.'], 404);
         }
         
-        $accessLog = new AccessLog();
-        $accessLog->UserLockerID = $userLocker->UserLockerID;
-        $accessLog->AccessMethodFingerprint = $accessMethod;
-        $accessLog->AccessResultFingerprint = $accessResult;
-        $accessLog->AccessTimeFingerprint = now();
-
-        $accessLog->save();
- 
-        return response()->json([
-            'message' => 'Log akses berhasil dibuat atau diperbarui.',
-            'accessResultFingerprint' => $accessResult,
-            'failedAttemptsFingerprint' => $userLocker->failed_attempts_fingerprint,
-            'lockerStatus' => $locker->StatusLocker
-        ], 200);
+        
     }
 
     public function accessWithRfid(Request $request)
@@ -117,45 +120,49 @@ class DashboardController extends Controller
                     $accessResult = 'Diterima';
                     $accessMethod = 'RFID';
                 }
+
+                if ($accessResult == 'Ditolak') {
+                    $userLocker->failed_attempts_rfid += 1;
+                    $userLocker->save();
+    
+                    // Check if failed attempts reach 5 and block locker
+                    if ($userLocker->failed_attempts_rfid >= 5) {
+                        $this->blockLocker($lockerid->LockerID);
+                    }
+    
+                } else if ($accessResult == 'Diterima') {
+                    $locker->StatusLocker = 'Opened';
+                    $locker->save();
+                }else{
+                    // Reset failed attempts if access is granted
+                    $userLocker->failed_attempts_rfid = 0;
+                    $userLocker->save();
+                }
+
+                $accessLog = new AccessLog();
+                $accessLog->UserLockerID = $userLocker->UserLockerID;
+                $accessLog->AccessMethod = $accessMethod;
+                $accessLog->AccessResult = $accessResult;
+                $accessLog->AccessTime = now();
+
+                $accessLog->save();
+            
+
+                return response()->json([
+                    'message' => 'Log akses berhasil dibuat atau diperbarui.',
+                    'accessResultRFID' => $accessResult,
+                    'failedAttemptsRfid' => $userLocker->failed_attempts_rfid,
+                    'lockerStatus' => $locker->StatusLocker
+                ], 200);
+
             }else{
                 return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
-            }
-
-            if ($accessResult == 'Ditolak') {
-                $userLocker->failed_attempts_rfid = $userLocker->failed_attempts_rfid + 1;
-                $userLocker->save();
-
-                // Check if failed attempts reach 5 and block locker
-                if ($userLocker->failed_attempts_rfid >= 5) {
-                    $this->blockLocker($lockerid->LockerID);
-                }
-            } else if ($accessResult == 'Diterima') {
-                $locker->StatusLocker = 'Opened';
-                $locker->save();
-            }else{
-                // Reset failed attempts if access is granted
-                $userLocker->failed_attempts_rfid = 0;
-                $userLocker->save();
             }
         }else{
             return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
         }
 
-        $accessLog = new AccessLog();
-        $accessLog->UserLockerID = $userLocker->UserLockerID;
-        $accessLog->AccessMethod = $accessMethod;
-        $accessLog->AccessResult = $accessResult;
-        $accessLog->AccessTime = now();
-
-        $accessLog->save();
         
-
-        return response()->json([
-            'message' => 'Log akses berhasil dibuat atau diperbarui.',
-            'accessResultRFID' => $accessResult,
-            'failedAttemptsRfid' => $userLocker->failed_attempts_rfid,
-            'lockerStatus' => $locker->StatusLocker
-        ], 200);
     }
 
     private function blockLocker($locker_id)
