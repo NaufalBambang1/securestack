@@ -8,7 +8,6 @@
                     <table id="data-table">
                         <thead>
                             <tr class="p-6 bg-gray-500">
-                                <th class="w-20">Log ID</th>
                                 <th class="w-10">Username</th>
                                 <th>Locker Number</th>
                                 <th>Status</th>
@@ -35,13 +34,13 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     // Fungsi untuk mereset locker
-    function resetLocker(lockerID) {
+    function resetLocker(UserLockerID) {
         if (!confirm("Apakah Anda yakin ingin mereset locker ini?")) {
             return;
         }
 
-        var url = '/resetButton?LockerID=' + lockerID;
-
+        var url = '/resetButton?LockerID=' + UserLockerID;
+        console.log('lockerid',UserLockerID);
         axios.get(url)
             .then(function(response) {
                 if (response.status === 200) {
@@ -73,8 +72,7 @@
 
                 data.forEach(function(item) {
                     var row = `<tr>
-                        <td>${item.LogID}</td>
-                        <td>${item.username}</td>
+                        <td>${item.Username}</td>
                         <td>${item.lockerNumber}</td>
                         <td>${item.StatusLocker}</td>
                         <td>${item.AccessMethodFingerprint || ''}</td>
@@ -90,8 +88,8 @@
                                         <i class="fa-solid fa-ellipsis-vertical cursor-pointer"></i>
                                     </button>
                                     <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="/viewdetail/${item.LogID}">Lihat Detail</a>
-                                        <a class="dropdown-item text--red" href="#" onclick="resetLocker(${item.LockerID})">Reset</a>
+                                        <a class="dropdown-item" href="/viewdetail/${item.UserLockerID}">Lihat Detail</a>
+                                        <a class="dropdown-item text--red" href="#" onclick="resetLocker(${item.UserLockerID})">Reset</a>
                                     </div>
                                 </div>
                             </div>

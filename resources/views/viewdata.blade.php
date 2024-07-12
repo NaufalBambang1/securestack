@@ -6,7 +6,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mt-6">
             
                 <div class="p-6 text-gray-900 dark:text-gray-100" style="text-align: -webkit-center;"> 
-                <span class="fs-20px">View Detail Akses Log</span>  
+                <span class="fs-20px pb-2">View Detail Akses Log</span>  
                     <table> 
                         <tr class="p-6 bg-gray-500">
                             <th>LogID</th>
@@ -25,7 +25,7 @@
                         @foreach($dataView as $dataX)
                         <tr>
                             <td>{{$dataX->LogID}}</td>
-                            <td>{{$dataX->username}}</td>
+                            <td>{{$dataX->Username}}</td>
                             <td>{{$dataX->lockerNumber}}</td>
                             <td>{{$dataX->StatusLocker}}</td>
                             <td>{{$dataX->AccessMethodFingerprint}}</td>

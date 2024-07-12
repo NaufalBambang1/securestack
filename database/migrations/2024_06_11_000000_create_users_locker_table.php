@@ -10,17 +10,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users_locker', function (Blueprint $table) {
-            $table->id('UserID');
+            $table->id('UserLockerID');
             $table->string('Username');
-            $table->unsignedBigInteger('locker_id')->nullable();
-            $table->foreign('locker_id')->references('LockerID')->on('lockers');
-            $table->string('Role');
-            $table->unsignedBigInteger('rfid_id')->nullable();
-            $table->foreign('rfid_id')->references('id')->on('rfids');
-            $table->string('RFIDTag')->nullable();
-            $table->unsignedBigInteger('fingerprint_id')->nullable();
-            $table->foreign('fingerprint_id')->references('id')->on('fingerprint_auth');
             $table->string('FingerprintData')->nullable();
+            $table->string('RFIDTag')->nullable();
             $table->unsignedInteger('failed_attempts_fingerprint')->default(0); // Kolom percobaan gagal fingerprint
             $table->unsignedInteger('failed_attempts_rfid')->default(0); // Kolom percobaan gagal RFID
             $table->timestamps();

@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('access_logs', function (Blueprint $table) {
             $table->id('LogID');
-            $table->foreignId('UserID')->constrained('users_locker', 'UserID')->onDelete('cascade');
-            $table->foreignId('LockerID')->constrained('lockers', 'LockerID')->onDelete('cascade');
+            $table->foreignId('UserLockerID')->constrained('users_locker', 'UserLockerID')->onDelete('cascade');
             $table->string('AccessMethodFingerprint')->nullable();
             $table->string('AccessResultFingerprint')->nullable();
             $table->dateTime('AccessTimeFingerprint')->nullable();

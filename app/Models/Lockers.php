@@ -8,10 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 class Lockers extends Model
 {
     use HasFactory;
-    public $table="lockers";
+    public $table = "lockers";
     protected $fillable = [
+        'UserLockerID',
         'lockerNumber',
         'StatusLocker'
-        ];
-    protected $primaryKey = 'LockerID';
+    ];
+    protected $primaryKey = 'UserLockerID';
+    public $incrementing = false; // Karena UserLockerID bukan auto-increment
+
+    public function userLocker()
+    {
+        return $this->belongsTo(UserLocker::class, 'UserLockerID');
+    }
 }

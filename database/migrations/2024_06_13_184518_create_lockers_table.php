@@ -12,10 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('lockers', function (Blueprint $table) {
-            $table->id('LockerID');
+            $table->unsignedBigInteger('UserLockerID'); // PK dan FK
             $table->string('lockerNumber');
             $table->string('StatusLocker');
             $table->timestamps();
+
+            // Set UserLockerID sebagai primary key
+            $table->primary('UserLockerID');
+
+            // Setup foreign key constraint
+            $table->foreign('UserLockerID')
+                ->references('UserLockerID')
+                ->on('users_locker')
+                ->onDelete('cascade');
         });
     }
 

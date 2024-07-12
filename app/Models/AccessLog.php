@@ -10,8 +10,7 @@ class AccessLog extends Model
     use HasFactory;
     public $table ="access_logs";
     protected $fillable = [
-        'UserID',
-        'LockerID',
+        'UserLockerID',
         'AccessMethodFingerprint',
         'AccessResultFingeprint',
         'AccessTimeFingerprint',
@@ -20,4 +19,9 @@ class AccessLog extends Model
         'AccessTime',
     ];
     protected $primaryKey = 'LogID';
+
+    public function userLocker()
+    {
+        return $this->belongsTo(UserLocker::class, 'UserLockerID');
+    } 
 }

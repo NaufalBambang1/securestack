@@ -6,231 +6,161 @@ use Illuminate\Http\Request;
 use App\Models\UserLocker;
 use App\Models\Lockers;
 use App\Models\AccessLog;
-use App\Models\Rfid;
-use App\Models\Fingerprint;
-use App\Models\ViewData;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     protected $port = 8000;
     public function index()
     {
-        $data = AccessLog::select(
-                            'access_logs.LogID',
-                            'users_locker.username',
-                            'lockers.lockerNumber',
-                            'lockers.StatusLocker',
-                            'access_logs.AccessMethodFingerprint',
-                            'access_logs.AccessResultFingerprint',
-                            'access_logs.AccessTimeFingerprint',
-                            'access_logs.AccessMethod',
-                            'access_logs.AccessResult',
-                            'access_logs.AccessTime',
-                            'access_logs.LockerID',
-                        )
-                        ->join('users_locker', 'access_logs.UserID', '=', 'users_locker.UserID')
-                        ->join('lockers', 'access_logs.LockerID', '=', 'lockers.LockerID')
-                        ->get();
 
-        return view('dashboard', compact('data'));
+        return view('dashboard');
     }
 
     public function indexViewData($logID)
     {
-        $dataView = ViewData::select(
-                    'view_data.ViewLogID',
-                    'access_logs.LogID',
-                    'users_locker.username',
-                    'lockers.lockerNumber',
-                    'view_data.StatusLocker',
-                    'view_data.AccessMethodFingerprint',
-                    'view_data.AccessResultFingerprint',
-                    'view_data.AccessTimeFingerprint',
-                    'view_data.failed_attempts_fingerprint',
-                    'view_data.AccessMethod',
-                    'view_data.AccessResult',
-                    'view_data.AccessTime',
-                    'view_data.failed_attempts_rfid',
-                )
-                ->join('access_logs', 'view_data.LogID', '=', 'access_logs.LogID')
-                ->join('users_locker', 'access_logs.UserID', '=', 'users_locker.UserID')
-                ->join('lockers', 'access_logs.LockerID', '=', 'lockers.LockerID')
-                ->where('access_logs.LogID', $logID)
-                ->get();
+        $dataView = AccessLog::select(
+            'access_logs.LogID',
+            'users_locker.Username',
+            'lockers.lockerNumber',
+            'lockers.StatusLocker',
+            'access_logs.AccessMethodFingerprint',
+            'access_logs.AccessResultFingerprint',
+            'access_logs.AccessTimeFingerprint',
+            'users_locker.failed_attempts_fingerprint',
+            'access_logs.AccessMethod',
+            'access_logs.AccessResult',
+            'access_logs.AccessTime',
+            'users_locker.failed_attempts_rfid'
+        )
+            ->join('users_locker', 'access_logs.UserLockerID', '=', 'users_locker.UserLockerID')
+            ->join('lockers', 'users_locker.UserLockerID', '=', 'lockers.UserLockerID')
+            ->where('users_locker.UserLockerID', $logID)
+            ->get();
 
         return view('viewdata', compact('dataView'));
     }
     public function accessWithFingerprint(Request $request)
     {
-        
-        // Memeriksa apakah locker dengan LockerID yang diberikan ada
-        $lockerid = Lockers::where('LockerID', $request->LockerID)->first();
-        if (!$lockerid) {
-            return response()->json(['error' => 'Locker tidak ditemukan.1'], 404);
-        }
-        
-        // Memeriksa apakah user locker dengan locker_id yang sesuai ada
-        $userLocker = UserLocker::where('locker_id', $lockerid->LockerID)->first();
-        if (!$userLocker) {
-            return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
-        }
-        
-// Mendapatkan ID sidik jari dari request
+        // Mendapatkan ID sidik jari dari request
         $fingerprint_id = $request->FingerprintData;
 
-// Membandingkan data sidik jari langsung dengan data di $userLocker
-        if ($fingerprint_id != $userLocker->FingerprintData) {
-         $accessResult = 'Ditolak';
-         $accessMethod = 'Fingerprint';
-        } else {
-        $accessResult = 'Diterima';
-        $accessMethod = 'Fingerprint';
-        }
+        // Memeriksa apakah locker dengan LockerID yang diberikan ada
+        $locker = Lockers::where('UserLockerID', $request->LockerID)->first();
+        
+        if($locker){
+            $userLocker = $locker->userLocker;
 
-        // Memeriksa apakah log akses dengan kombinasi UserID dan LockerID sudah ada
-        $accessLog = AccessLog::where('UserID', $userLocker->UserID)
-                            ->where('LockerID', $userLocker->locker_id)
-                            ->first();
-
-        $detailLog = new ViewData();
-        if ($accessLog) {
-            // Jika log akses sudah ada, perbarui entri yang sudah ada
-            $accessLog->AccessMethodFingerprint = $accessMethod;
-            $accessLog->AccessResultFingerprint = $accessResult;
-            $accessLog->AccessTimeFingerprint = now();
-        } else {
-            // Jika log akses belum ada, buat entri baru
-            $accessLog = new AccessLog();
-            $accessLog->UserID = $userLocker->UserID;
-            $accessLog->LockerID = $userLocker->locker_id;
-            $accessLog->AccessMethodFingerprint = $accessMethod;
-            $accessLog->AccessResultFingerprint = $accessResult;
-            $accessLog->AccessTimeFingerprint = now();
-        }
-
-        // Check if access is denied and increment failed attempts
-        if ($accessResult == 'Ditolak') {
-            $userLocker->failed_attempts_fingerprint = $userLocker->failed_attempts_fingerprint + 1;
-            $userLocker->save();
-            $detailLogFailed = $detailLog->failed_attempts_fingerprint = $detailLog->failed_attempts_fingerprint + 1;
-
-            // Check if failed attempts reach 5 and block locker
-            if ($userLocker->failed_attempts_fingerprint >= 5) {
-                $this->blockLocker($lockerid->LockerID);
+            if($userLocker){
+                // Membandingkan data sidik jari langsung dengan data di $userLocker
+                if($fingerprint_id != $userLocker->FingerprintData){
+                    $accessResult = 'Ditolak';
+                    $accessMethod = 'Fingerprint';
+                } else {
+                    $accessResult = 'Diterima';
+                    $accessMethod = 'Fingerprint';
+                }
+            }else{
+                return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
             }
-        } else {
-            // Reset failed attempts if access is granted
-            $userLocker->failed_attempts_fingerprint = 0;
-            $userLocker->save();
-            $detailLogFailed = $detailLog->failed_attempts_fingerprint = 0;
+
+            // Check if access is denied and increment failed attempts
+            if ($accessResult == 'Ditolak') {
+                $userLocker->failed_attempts_fingerprint = $userLocker->failed_attempts_fingerprint + 1;
+                $userLocker->save();
+
+                // Check if failed attempts reach 5 and block locker
+                if ($userLocker->failed_attempts_fingerprint >= 5) {
+                    $this->blockLocker($lockerid->LockerID);
+                }
+
+            } else {
+                // Reset failed attempts if access is granted
+                $userLocker->failed_attempts_fingerprint = 0;
+                $userLocker->save();
+            }
+        }else{
+            return response()->json(['error' => 'locker tidak ditemukan.'], 404);
         }
-
         
+        $accessLog = new AccessLog();
+        $accessLog->UserLockerID = $userLocker->UserLockerID;
+        $accessLog->AccessMethodFingerprint = $accessMethod;
+        $accessLog->AccessResultFingerprint = $accessResult;
+        $accessLog->AccessTimeFingerprint = now();
+
         $accessLog->save();
-
-        
-        $detailLog->LogID = $accessLog->LogID;
-        $detailLog->UserID = $userLocker->UserID;
-        $detailLog->LockerID = $userLocker->locker_id;
-        $detailLog->AccessMethodFingerprint = $accessMethod;
-        $detailLog->AccessResultFingerprint = $accessResult;
-        $detailLog->failed_attempts_fingerprint =$detailLogFailed;
-        $detailLog->AccessTimeFingerprint = now();
-        $detailLog->save();
  
         return response()->json([
             'message' => 'Log akses berhasil dibuat atau diperbarui.',
             'accessResultFingerprint' => $accessResult,
             'failedAttemptsFingerprint' => $userLocker->failed_attempts_fingerprint,
-            'lockerStatus' => $lockerid->StatusLocker
+            'lockerStatus' => $locker->StatusLocker
         ], 200);
     }
 
     public function accessWithRfid(Request $request)
     {
-        $lockerid = Lockers::where('LockerID', $request->LockerID)->first();
-        if (!$lockerid) {
-            return response()->json(['error' => 'Locker tidak ditemukan.3'], 404);
-        }
+        $rfid_id = $request->RFIDTag;
+        
+        $locker = Lockers::where('UserLockerID', $request->LockerID)->first();
 
-        $userLocker = UserLocker::where('locker_id', $lockerid->LockerID)->first();
-        if (!$userLocker) {
+        if($locker){
+            $userLocker = $locker->userLocker;
+
+            if($userLocker){
+                if ($rfid_id != $userLocker->RFIDTag) {
+                    $accessResult = 'Ditolak';
+                    $accessMethod = 'RFID';
+                } else {
+                    $accessResult = 'Diterima';
+                    $accessMethod = 'RFID';
+                }
+            }else{
+                return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
+            }
+
+            if ($accessResult == 'Ditolak') {
+                $userLocker->failed_attempts_rfid = $userLocker->failed_attempts_rfid + 1;
+                $userLocker->save();
+
+                // Check if failed attempts reach 5 and block locker
+                if ($userLocker->failed_attempts_rfid >= 5) {
+                    $this->blockLocker($lockerid->LockerID);
+                }
+            } else if ($accessResult == 'Diterima') {
+                $locker->StatusLocker = 'Opened';
+                $locker->save();
+            }else{
+                // Reset failed attempts if access is granted
+                $userLocker->failed_attempts_rfid = 0;
+                $userLocker->save();
+            }
+        }else{
             return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
         }
 
-        $rfid_id = $request->RFIDTag;
-
-        if ($rfid_id != $userLocker->RFIDTag) {
-            $accessResult = 'Ditolak';
-            $accessMethod = 'RFID';
-        } else {
-            $accessResult = 'Diterima';
-            $accessMethod = 'RFID';
-        }
-        $accessLog = AccessLog::where('UserID', $userLocker->UserID)
-                ->where('LockerID', $userLocker->locker_id)
-                ->first();
-        $detailLog = new ViewData();
-
-        if ($accessLog) {
-            $accessLog->AccessResult = $accessResult;
-            $accessLog->AccessMethod = $accessMethod;
-            $accessLog->AccessResult = $accessResult;
-            $accessLog->AccessTime = now();
-        } else {
-            $accessLog = new AccessLog();
-            $accessLog->UserID = $userLocker->UserID;
-            $accessLog->LockerID = $userLocker->locker_id;
-            $accessLog->AccessMethod = $accessMethod;
-            $accessLog->AccessResult = $accessResult;
-            $accessLog->AccessTime = now();
-        }        
-
-        // Check if access is denied and increment failed attempts
-        if ($accessResult == 'Ditolak') {
-            $userLocker->failed_attempts_rfid = $userLocker->failed_attempts_rfid + 1;
-            $userLocker->save();
-            $detailLogFailed = $detailLog->failed_attempts_rfid = $detailLog->failed_attempts_rfid + 1;
-            // Check if failed attempts reach 5 and block locker
-            if ($userLocker->failed_attempts_rfid >= 5) {
-                $this->blockLocker($lockerid->LockerID);
-            }
-        } else {
-            // Reset failed attempts if access is granted
-            $userLocker->failed_attempts_rfid = 0;
-            $userLocker->save();
-            $detailLogFailed =  $detailLog->failed_attempts_rfid = 0;
-        }
-
-        if($accessResult == 'Diterima'){
-            $lockerid->StatusLocker = 'Opened';
-            
-            $lockerid->save();
-        }
+        $accessLog = new AccessLog();
+        $accessLog->UserLockerID = $userLocker->UserLockerID;
+        $accessLog->AccessMethod = $accessMethod;
+        $accessLog->AccessResult = $accessResult;
+        $accessLog->AccessTime = now();
 
         $accessLog->save();
         
-        
-        $detailLog->LogID = $accessLog->LogID;
-        $detailLog->UserID = $userLocker->UserID;
-        $detailLog->LockerID = $userLocker->locker_id;
-        $detailLog->AccessMethod = $accessMethod;
-        $detailLog->AccessResult = $accessResult;
-        $detailLog->failed_attempts_rfid = $detailLogFailed;
-        $detailLog->AccessTime = now();
-        $detailLog->save();
 
         return response()->json([
             'message' => 'Log akses berhasil dibuat atau diperbarui.',
             'accessResultRFID' => $accessResult,
             'failedAttemptsRfid' => $userLocker->failed_attempts_rfid,
-            'lockerStatus' => $lockerid->StatusLocker
+            'lockerStatus' => $locker->StatusLocker
         ], 200);
     }
+
     private function blockLocker($locker_id)
     {
-        $locker = Lockers::where('LockerID', $locker_id)->first();
+        $locker = Lockers::where('UserLockerID', $locker_id)->first();
         if ($locker) {
             $locker->StatusLocker = 'Blocked';
             $locker->save();
@@ -242,24 +172,18 @@ class DashboardController extends Controller
 
     public function resetButton(Request $request)
     {
-        $LockerID = $request->input('LockerID');
-        
+        $LockerID = $request->input('lockerID');
         // Cari data user locker berdasarkan LockerID
-        $userLocker = UserLocker::where('locker_id', $LockerID)->first();
-        if (!$userLocker) {
-            return response()->json(['error' => 'User locker tidak ditemukan.'], 404);
-        }
-    
-        // Reset failed attempts
-        $userLocker->failed_attempts_fingerprint = 0;
-        $userLocker->failed_attempts_rfid = 0;
-        $userLocker->save();
-    
-        // Update status locker menjadi 'Closed'
-        $locker = Lockers::where('LockerID', $userLocker->locker_id)->first();
-        if ($locker) {
-            $locker->StatusLocker = 'Closed';
-            $locker->save();
+        $lockerid = Lockers::where('UserLockerID', $request->LockerID)->first();
+        if($lockerid){
+            $userLocker = $lockerid->userLocker;
+
+            $userLocker->failed_attempts_fingerprint = 0;
+            $userLocker->failed_attempts_rfid = 0;
+            $userLocker->save();
+
+            $lockerid->StatusLocker = 'Closed';
+            $lockerid->save();
         }
     
         return response()->json([
@@ -276,7 +200,7 @@ class DashboardController extends Controller
         ]);
 
         // Ambil locker berdasarkan ID
-        $locker = Lockers::where('LockerID', $request->LockerID)->first();
+        $locker = Lockers::where('UserLockerID', $request->LockerID)->first();
 
         // Jika locker ditemukan, update statusnya
         if ($locker) {
@@ -297,70 +221,24 @@ class DashboardController extends Controller
     public function getData()
     {
         $data = AccessLog::select(
-            'access_logs.LogID',
-            'users_locker.username',
+            'lockers.UserLockerID',
+            'users_locker.Username',
             'lockers.lockerNumber',
             'lockers.StatusLocker',
-            'access_logs.AccessMethodFingerprint',
-            'access_logs.AccessResultFingerprint',
-            'access_logs.AccessTimeFingerprint',
-            'access_logs.AccessMethod',
-            'access_logs.AccessResult',
-            'access_logs.AccessTime',
-            'access_logs.LockerID'
+            DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(IF(access_logs.AccessMethodFingerprint = "Fingerprint", access_logs.AccessResultFingerprint, NULL) ORDER BY access_logs.LogID DESC), ",", 1) AS AccessResultFingerprint'),
+            DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(IF(access_logs.AccessMethodFingerprint = "Fingerprint", access_logs.AccessTimeFingerprint, NULL) ORDER BY access_logs.LogID DESC), ",", 1) AS AccessTimeFingerprint'),
+            DB::raw('MAX(IF(access_logs.AccessMethodFingerprint = "Fingerprint", "Fingerprint", NULL)) AS AccessMethodFingerprint'),
+            DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(IF(access_logs.AccessMethod = "RFID", access_logs.AccessResult, NULL) ORDER BY access_logs.LogID DESC), ",", 1) AS AccessResult'),
+            DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(IF(access_logs.AccessMethod = "RFID", access_logs.AccessTime, NULL) ORDER BY access_logs.LogID DESC), ",", 1) AS AccessTime'),
+            DB::raw('MAX(IF(access_logs.AccessMethod = "RFID", "RFID", NULL)) AS AccessMethod')
         )
-        ->join('users_locker', 'access_logs.UserID', '=', 'users_locker.UserID')
-        ->join('lockers', 'access_logs.LockerID', '=', 'lockers.LockerID')  
+        ->join('users_locker', 'access_logs.UserLockerID', '=', 'users_locker.UserLockerID')
+        ->join('lockers', 'users_locker.UserLockerID', '=', 'lockers.UserLockerID')
+        ->groupBy('lockers.UserLockerID', 'users_locker.Username', 'lockers.lockerNumber')
         ->get();
+
     
         return response()->json($data);
     }
     
-    
-
-
-    // public function accessWithRfid(Request $request)
-    // {
-    //     $userLocker = UserLocker::find($request->UserID);
-    //     if (!$userLocker) {
-    //         return response()->json(['error' => 'User locker not found.'], 404);
-    //     }
-
-      
-    //     $rfid_id = $request->rfid_id;
-    //     $rfidTag = Rfid::find($rfid_id);
-    //     if (!$rfidTag) {
-    //         return response()->json(['error' => 'RFID tag not found.'], 404);
-    //     }
-
-    //     if ($rfidTag->RFIDTag != $userLocker->RFIDTag) {
-    //         $accessResult = 'Failed';
-    //         $accessMethod = 'RFID';
-    //     } else {
-    //         $accessResult = 'Success';
-    //         $accessMethod = 'RFID';
-    //     }
-
-      
-    //     $accessLog = new AccessLog();
-    //     $accessLog->UserID = $userLocker->UserID;
-    //     $accessLog->LockerID = $userLocker->locker_id;
-    //     $accessLog->AccessMethod = $accessMethod;
-    //     $accessLog->AccessResult = $accessResult;
-    //     $accessLog->AccessTime = now();
-    //     $accessLog->save();
-
-    //     return response()->json(['message' => 'Access log created successfully.'], 200);
-    // }
-
-    // public function verifyFingerprint(Request $request)
-    // {
-    //     $fingerprint = Fingerprint::where('FingerprintData', $request->FingerprintData)->first();
-
-    //     if ($fingerprint) {
-    //         return response()->json(['verified' => true, 'fingerprint_id' => $fingerprint->id]);
-    //     } else {
-    //         return response()->json(['verified' => false]);
-    //     }
-    // }
 }
