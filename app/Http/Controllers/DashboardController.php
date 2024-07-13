@@ -18,7 +18,7 @@ class DashboardController extends Controller
         return view('dashboard');
     }
 
-    public function indexViewData($logID)
+    public function indexViewData($UserLockerID)
     {
         $dataView = AccessLog::select(
             'access_logs.LogID',
@@ -32,11 +32,12 @@ class DashboardController extends Controller
             'access_logs.AccessMethod',
             'access_logs.AccessResult',
             'access_logs.AccessTime',
-            'users_locker.failed_attempts_rfid'
+            'users_locker.failed_attempts_rfid',
+            'access_logs.UserLockerID'
         )
             ->join('users_locker', 'access_logs.UserLockerID', '=', 'users_locker.UserLockerID')
             ->join('lockers', 'users_locker.UserLockerID', '=', 'lockers.UserLockerID')
-            ->where('access_logs.LogID', $logID)
+            ->where('access_logs.UserLockerID', $UserLockerID)
             ->get();
 
         return view('viewdata', compact('dataView'));
