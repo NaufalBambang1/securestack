@@ -16,8 +16,7 @@ class UserLocker extends Model
         'Username',
         'FingerprintData',
         'RFIDTag',
-        'failed_attempts_fingerprint',
-        'failed_attempts_rfid',
+        'LockerNumber'
     ];
 
 }

@@ -11,12 +11,15 @@ class AccessLog extends Model
     public $table ="access_logs";
     protected $fillable = [
         'UserLockerID',
+        'StatusLocker',
         'AccessMethodFingerprint',
         'AccessResultFingeprint',
         'AccessTimeFingerprint',
+        'failed_attempts_fingerprint',
         'AccessMethod',
         'AccessResult',
         'AccessTime',
+        'failed_attempts_rfid',
     ];
     protected $primaryKey = 'LogID';
 
