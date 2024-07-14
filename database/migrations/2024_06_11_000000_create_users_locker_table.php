@@ -15,6 +15,8 @@ return new class extends Migration
             $table->string('FingerprintData')->nullable();
             $table->string('RFIDTag')->nullable();
             $table->string('LockerNumber');
+            $table->unsignedInteger('Attempts_fingerprint')->default(0);
+            $table->unsignedInteger('Attempts_rfid')->default(0);
             $table->timestamps();
         });
     }

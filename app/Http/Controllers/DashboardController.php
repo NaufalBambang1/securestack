@@ -48,9 +48,10 @@ class DashboardController extends Controller
 
         // Memeriksa apakah locker dengan LockerID yang diberikan ada
         $userLocker = UserLocker::where('UserLockerID', $request->LockerID)->first();
-        
+        $failed_attempts_fingerprint = $userLocker->Attempts_fingerprint;
+
         if($userLocker){
-            $failed_attempts_fingerprint = 0;
+           
             $accessLog = new AccessLog();
 
             // Membandingkan data sidik jari langsung dengan data di $userLocker
@@ -64,24 +65,30 @@ class DashboardController extends Controller
 
             // Check if access is denied and increment failed attempts
             if ($accessResult == 'Ditolak') {
-                $accessLog->failed_attempts_fingerprint = $accessLog->failed_attempts_fingerprint + 1;
                 $failed_attempts_fingerprint++;
+                $userLocker->Attempts_fingerprint = $failed_attempts_fingerprint;
+                $userLocker->save();
 
                 // Check if failed attempts reach 5 and block locker
                 if ($failed_attempts_fingerprint >= 5) {
-                    $accesslog->StatusLocker = 'Blocked';
+                    $accessLog->StatusLocker = 'Blocked';
+                }else{
+                    $accessLog->StatusLocker = 'Closed';
                 }
 
             } else {
                 // Reset failed attempts if access is granted
                 $failed_attempts_fingerprint = 0;
-                $accessLog->failed_attempts_fingerprint = 0;
+                $userLocker->Attempts_fingerprint = $failed_attempts_fingerprint;
+                $userLocker->save();
+                $accessLog->StatusLocker = 'Closed';
             }
 
             
             $accessLog->UserLockerID = $userLocker->UserLockerID;
             $accessLog->AccessMethodFingerprint = $accessMethod;
             $accessLog->AccessResultFingerprint = $accessResult;
+            $accessLog->failed_attempts_fingerprint = $failed_attempts_fingerprint;
             $accessLog->AccessTimeFingerprint = now();
 
             $accessLog->save();
@@ -103,11 +110,12 @@ class DashboardController extends Controller
         $rfid_id = $request->RFIDTag;
         
         $userLocker = UserLocker::where('UserLockerID', $request->LockerID)->first();
+        $failed_attempts_rfid = $userLocker->Attempts_rfid;
 
         if($userLocker){
 
             $accessLog = new AccessLog();
-            $failed_attempts_rfid = 0;
+            
             
             if ($rfid_id != $userLocker->RFIDTag) {
                 $accessResult = 'Ditolak';
@@ -118,26 +126,31 @@ class DashboardController extends Controller
             }
 
             if ($accessResult == 'Ditolak') {
-                $accessLog->failed_attempts_rfid = $accessLog->failed_attempts_rfid + 1;
                 $failed_attempts_rfid++;
-
+                $userLocker->Attempts_rfid = $failed_attempts_rfid;
+                $userLocker->save();
                 // Check if failed attempts reach 5 and block locker
                 if ($failed_attempts_rfid >= 5) {
-                    $accesslog->StatusLocker = 'Blocked';
+                    $accessLog->StatusLocker = 'Blocked';
+                }else{
+                    $accessLog->StatusLocker = 'Closed';
                 }
 
             } else if ($accessResult == 'Diterima') {
                 $accessLog->StatusLocker = 'Opened';
             }else{
                 // Reset failed attempts if access is granted
-                $accessLog->failed_attempts_rfid = 0;
                 $failed_attempts_rfid = 0;
+                $userLocker->Attempts_rfid = $failed_attempts_rfid;
+                $userLocker->save();
+                $accessLog->StatusLocker = 'Closed';
             }
 
             
             $accessLog->UserLockerID = $userLocker->UserLockerID;
             $accessLog->AccessMethod = $accessMethod;
             $accessLog->AccessResult = $accessResult;
+            $accessLog->failed_attempts_rfid = $failed_attempts_rfid;
             $accessLog->AccessTime = now();
 
             $accessLog->save();
@@ -175,14 +188,21 @@ class DashboardController extends Controller
         $accesslog = AccessLog::where('UserLockerID', $request->LockerID)
                 ->orderBy('created_at', 'desc')
                 ->first();
-
+        $userlocker = UserLocker::where('UserLockerID',  $request->LockerID)->first();
         if ($accesslog) {   
             if($accesslog->StatusLocker == 'Blocked'){
                 $accessLog = new AccessLog();
                 $accessLog->UserLockerID = $request->LockerID;
                 $accesslog->StatusLocker = 'Closed';
+
+                $accesslog->failed_attempts_fingerprint = 0;
+                $accesslog->failed_attempts_rfid = 0;
                 $accesslog->save();
-    
+                
+                $userlocker->Attempts_fingerprint = 0;
+                $userlocker->Attempts_rfid = 0;
+                $userlocker->save();
+
                 return response()->json([
                     'message' => 'Locker berhasil direset.',
                 ], 200);
