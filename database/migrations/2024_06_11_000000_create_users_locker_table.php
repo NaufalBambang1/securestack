@@ -14,8 +14,7 @@ return new class extends Migration
             $table->string('Username');
             $table->string('FingerprintData')->nullable();
             $table->string('RFIDTag')->nullable();
-            $table->unsignedInteger('failed_attempts_fingerprint')->default(0); // Kolom percobaan gagal fingerprint
-            $table->unsignedInteger('failed_attempts_rfid')->default(0); // Kolom percobaan gagal RFID
+            $table->string('LockerNumber');
             $table->timestamps();
         });
     }
