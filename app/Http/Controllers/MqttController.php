@@ -78,60 +78,63 @@ class MqttController extends Controller
     }
 
     // Function untuk RFID
-    public function processRFID($topic, $msg)
-    {
-        Log::info("RFID Message received on topic $topic: $msg");
+public function processRFID($topic, $msg)
+{
+    Log::info("RFID Message received on topic $topic: $msg");
 
-        $rfidData = str_replace("RFID tag: ", "", $msg);
+    $rfidData = str_replace("RFID tag: ", "", $msg);
+    $hashedRFIDdata = hash('sha256', $rfidData); // Hashing the RFID data
 
-        // Cari user yang terhubung dengan RFID
-        $user = UserLocker::where('RFIDTag', $rfidData)->first();
+    // Cari user yang terhubung dengan RFID
+    $user = UserLocker::whereNull('RFIDTag')->first();
 
-        if (!$user) {
-            Log::warning("No user found for RFID tag: $rfidData");
-            echo "No user found for RFID tag: $rfidData<br>";
-            $response = "No user found for RFID tag: $rfidData";
-        } else {
-            // Perbarui data user dengan RFID
-            $user->RFIDTag = $rfidData;
-            $user->save();
+    if (!$user) {
+        Log::warning("No available user for RFID tag assignment");
+        echo "No available user for RFID tag assignment<br>";
+        $response = "No available user for RFID tag assignment";
+    } else {
+        // Perbarui data user dengan RFID
+        $user->RFIDTag = $hashedRFIDdata;
+        $user->save();
 
-            Log::info("RFID tag updated for new user: {$user->Username}, RFID tag: $rfidData");
-            echo "RFID tag updated for new user: {$user->Username}, RFID tag: $rfidData<br>";
-            $response = "RFID tag updated for new user: {$user->Username}, RFID tag: $rfidData";
-        
-        }
-
-        echo "Sending response back to Arduino: $response<br>";
-        $this->sendResponse($response);
+        Log::info("RFID tag assigned to user: {$user->Username}, RFID tag: $hashedRFIDdata");
+        echo "RFID tag assigned to user: {$user->Username}, RFID tag: $hashedRFIDdata<br>";
+        $response = "RFID tag assigned to user: {$user->Username}, RFID tag: $hashedRFIDdata";
     }
+
+    echo "Sending response back to Arduino: $response<br>";
+    $this->sendResponse($response);
+}
+
 
     // Function untuk memproses Fingerprint
     public function processFingerprint($topic, $msg)
     {
         Log::info("Fingerprint Message received on topic $topic: $msg");
-
+    
         $fingerprintId = $msg;
-
-        // Cari user yang memiliki fingerprint yang sama di table user
-        $user = UserLocker::where('FingerprintData', $fingerprintId)->first();
-
+        $hashedFingerprintId = hash('sha256', $fingerprintId); // Hashing the fingerprint ID
+    
+        // Find the first user in UserLocker that does not have FingerprintData assigned
+        $user = UserLocker::whereNull('FingerprintData')->first();
+    
         if (!$user) {
-            Log::warning("No user found for Fingerprint ID: $fingerprintId");
-            echo "No user found for Fingerprint ID: $fingerprintId<br>";
-            $response = "No user found for Fingerprint ID: $fingerprintId";
+            Log::warning("No user found in UserLocker table");
+            echo "No user found in UserLocker table<br>";
+            $response = "No user found in UserLocker table";
         } else {
-            $user->FingerprintData = $fingerprintId;
+            $user->FingerprintData = $hashedFingerprintId; // Store hashed ID instead
             $user->save();
-
-            Log::info("Fingerprint ID updated for user: {$user->Username}, Fingerprint ID: $fingerprintId");
-            echo "Fingerprint ID updated for user: {$user->Username}, Fingerprint ID: $fingerprintId<br>";
-            $response = "Fingerprint ID updated for user: {$user->Username}, Fingerprint ID: $fingerprintId";
+    
+            Log::info("Fingerprint ID updated for user: {$user->Username}, Fingerprint ID: $hashedFingerprintId");
+            echo "Fingerprint ID updated for user: {$user->Username}, Fingerprint ID: $hashedFingerprintId<br>";
+            $response = "Fingerprint ID updated for user: {$user->Username}, Fingerprint ID: $hashedFingerprintId";
         }
-
+    
         echo "Sending response back to Arduino: $response<br>";
         $this->sendResponse($response);
     }
+
 
     protected function sendResponse($message)
     {

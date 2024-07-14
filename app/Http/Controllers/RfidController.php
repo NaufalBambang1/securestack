@@ -15,7 +15,7 @@ class RfidController extends Controller
         ]);
 
         // Cari RFID tag dalam database
-        $rfid = Rfid::where('rfid_tag', $validatedData['rfid_tag'])->first();
+        $rfid = UserLocker::where('rfid_tag', $validatedData['rfid_tag'])->first();
 
         if ($rfid) {
             // Dapatkan informasi pengguna terkait jika ada
